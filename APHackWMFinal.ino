@@ -20,6 +20,7 @@ ACTIONS Action(){
   // in that case unset the pressed button flag 
   // and return the NO ACTION
   if (!b1 && !b2 && !b3){
+    delay(250);
     buttonPressed = false;
     return ACT_NONE;
   }

@@ -10,7 +10,7 @@ class APFakerStruct
     bool operator!=(APFakerStruct comp){
       return strcmp(ssid, comp.ssid) != 0 || strcmp(pass, comp.pass) != 0 || (keyIndex != comp.keyIndex);
     }
-} currentAPFaker, emptyAPFaker = { "", "", -1 };
+} currentAPFaker, emptyAPFaker = { "", "", "", -1 };
 
 enum CODE_RETURN {
   CS_SUCCESS = 0,
@@ -19,7 +19,6 @@ enum CODE_RETURN {
   CS_ERROR_AP_INITIALIZATION
 };
 
-WiFiClient ConnectedClients[100];
 int clientCount = 0;
 String connectedIP = "";
 
@@ -73,6 +72,11 @@ CODE_RETURN InitializationAP(APFakerStruct apf) {
   return CS_SUCCESS;
 }
 
+void StopAP(){
+  WiFi.end();
+  currentAPFaker = emptyAPFaker;
+}
+
 unsigned long lastTime = 0;
 
 void CheckForNewDevices() {
@@ -90,29 +94,8 @@ void CheckForNewDevices() {
       // a device has disconnected from the AP, and we are back in listening mode
       MetricsData[1]--; // decrement the current connected Device
       Serial.println("Device disconnected from AP");
-      /* for (int i = 0; i < clientCount; i++)
-      {
-        if (ConnectedClients[i].connected()) {
-          Serial.print("the disconnected client is the #"); Serial.println(i);
-          break;
-        }
-      } */
     }
   }
-  /*
-  WiFiClient client = server.available();   // listen for incoming clients
-  if (client && connectedIP.indexOf(String(";") + client.remoteIP() + String(";")) == -1) {
-    ConnectedClients[clientCount] = client;
-    clientCount++;
-    connectedIP += String(";") + client.remoteIP() + String(";");
-    Serial.print("new client: "); Serial.println(client.remoteIP());
-    // close the connection:
-    // client.stop();
-    // Serial.println("client disconnected");
-    return client;
-  }
-  return NULL;
-   */
 }
 
 void ProvidePageToClient(WiFiClient client, String page){

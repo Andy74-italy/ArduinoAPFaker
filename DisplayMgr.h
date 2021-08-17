@@ -209,12 +209,16 @@ void Activate(){
     case ACTIVE_SCREEN:
       switch(actualLine % size_of_Array(ActiveActions)){
         case 0:   // "Stop AP"
+          Serial.println("Stopping AP");
+          StopAP();
           currentScreen = HOME_SCREEN;
           break;
         case 1:   // "Status"
+          Serial.println("switching on status");
           currentScreen = STATUS_SCREEN;
           break;
         case 2:   // "Records"
+          Serial.println("switching on records");
           currentScreen = RESULT_SCREEN;
           break;
         default:
@@ -223,12 +227,11 @@ void Activate(){
       break;
     case STATUS_SCREEN:
     case RESULT_SCREEN:
-      currentScreen = HOME_SCREEN;
+      currentScreen = ACTIVE_SCREEN;
       break;
     default:
       break;
   }
-  actualLine = 0;
 }
 
 void displayLoop(ACTIONS action) {
@@ -264,13 +267,16 @@ void displayLoop(ACTIONS action) {
    * Do action based on the button pressed */
   switch (action) {
     case ACT_UP:
+      Serial.println("ACT_UP");
       actualLine--;
       break;
     case ACT_CONFIRM:
+      Serial.println("ACT_CONFIRM");
       Activate();
       actualLine = 0;
       break;
     case ACT_DOWN:
+      Serial.println("ACT_DOWN");
       actualLine++;
       break;
     default:
