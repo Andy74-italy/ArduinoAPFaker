@@ -1,11 +1,16 @@
 #include <WiFiNINA.h>
 
-struct APFakerStruct
+class APFakerStruct
 {
-  char ssid[20];        // your network SSID (name)
-  char pass[20];        // your network password (use for WPA, or use as key for WEP)
-  int keyIndex;         // your network key Index number (needed only for WEP)
-} currentAPFaker;
+  public:
+    char shortName[20];   // name displayed for reference
+    char ssid[20];        // your network SSID (name)
+    char pass[20];        // your network password (use for WPA, or use as key for WEP)
+    int keyIndex;         // your network key Index number (needed only for WEP)
+    bool operator!=(APFakerStruct comp){
+      return strcmp(ssid, comp.ssid) != 0 || strcmp(pass, comp.pass) != 0 || (keyIndex != comp.keyIndex);
+    }
+} currentAPFaker, emptyAPFaker = { "", "", -1 };
 
 enum CODE_RETURN {
   CS_SUCCESS = 0,
@@ -16,6 +21,14 @@ enum CODE_RETURN {
 
 WiFiClient ConnectedClients[100];
 int clientCount = 0;
+String connectedIP = "";
+
+/**********************************
+ * In this array will be recorded the 
+ * statistics to show in the status 
+ * screen (look the totalRecords variable)
+ */
+int MetricsData[3] = {0, 0, 0};
 
 int led = LED_BUILTIN;
 int status = WL_IDLE_STATUS;
@@ -33,6 +46,8 @@ CODE_RETURN setupAPFaker() {
     return CS_ERROR_WIFI_STATUS;
   }
 
+  currentAPFaker = emptyAPFaker;
+
   String fv = WiFi.firmwareVersion();
   if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
     return CS_WARNING_FIRMWARE_VERSION;
@@ -43,20 +58,24 @@ CODE_RETURN setupAPFaker() {
 
 CODE_RETURN InitializationAP(APFakerStruct apf) {
   // Create open network. Change this line if you want to create an WEP network:
-  status = WiFi.beginAP(apf.ssid, apf.pass);
+  status = WiFi.beginAP(apf.ssid);
   if (status != WL_AP_LISTENING) {
-    // Serial.println("Creating access point failed");
-    // don't continue
-    // while (true);
     return CS_ERROR_AP_INITIALIZATION;
   }
   delay(10000);
   server.begin();
 
+  currentAPFaker = apf;
+
+  Serial.print("IP to navigate: ");
+  Serial.println(GetIPAddress());
+
   return CS_SUCCESS;
 }
 
-WiFiClient CheckForNewClient() {
+unsigned long lastTime = 0;
+
+void CheckForNewDevices() {
   // compare the previous status to the current status
   if (status != WiFi.status()) {
     // it has changed update the variable
@@ -64,58 +83,85 @@ WiFiClient CheckForNewClient() {
 
     if (status == WL_AP_CONNECTED) {
       // a device has connected to the AP
-      // Serial.println("Device connected to AP");
-      
+      MetricsData[1]++; // increment the current connected Device
+      MetricsData[2]++; // increment the total connected Device
+      Serial.println("Device connected to AP");
     } else {
       // a device has disconnected from the AP, and we are back in listening mode
-      // Serial.println("Device disconnected from AP");
+      MetricsData[1]--; // decrement the current connected Device
+      Serial.println("Device disconnected from AP");
+      /* for (int i = 0; i < clientCount; i++)
+      {
+        if (ConnectedClients[i].connected()) {
+          Serial.print("the disconnected client is the #"); Serial.println(i);
+          break;
+        }
+      } */
     }
   }
-
+  /*
   WiFiClient client = server.available();   // listen for incoming clients
-
-  if (client) {                             // if you get a client,
+  if (client && connectedIP.indexOf(String(";") + client.remoteIP() + String(";")) == -1) {
     ConnectedClients[clientCount] = client;
     clientCount++;
-    // Serial.println("new client");           // print a message out the serial port
+    connectedIP += String(";") + client.remoteIP() + String(";");
+    Serial.print("new client: "); Serial.println(client.remoteIP());
     // close the connection:
-    client.stop();
+    // client.stop();
     // Serial.println("client disconnected");
     return client;
   }
   return NULL;
+   */
 }
 
+void ProvidePageToClient(WiFiClient client, String page){
+  Serial.println("sending page " + page + " started");
+  client.println("HTTP/1.1 200 OK");
+  client.println("Content-type:text/html");
+  client.println();
+
+  // the content of the HTTP response follows the header:
+  client.print(page);
+
+  client.print("Click <form method=\"POST\" action=\"/L\">here</form> to login<br>");
+  client.print("Click <a href=\"/R\">here</a> to register<br>");
+
+  // The HTTP response ends with another blank line:
+  client.println();
+
+  Serial.println("sending page " + page + " completed");
+}
+
+/*
+String GetRequest(WiFiClient client){
+  unsigned char* buffer = (unsigned char*)malloc(sizeof(unsigned char)*100);
+  int charnum = client.read(buffer, 4096);
+  String request = "";
+  int i = 0;
+  while (buffer[i] != '\n') {
+    request += (char)(buffer[i]);
+    i++;
+  }
+  return request;
+}
+ */
+
 void APFakerClientLoopManager(){
-  for (int i = 0; i < clientCount; i++)
-  {
+  WiFiClient client = server.available();   // listen for incoming clients
+  if (client) {                             // if you get a client,
+    Serial.println("new client");           // print a message out the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
-    while (ConnectedClients[i].connected()) {            // loop while the client's connected
-      if (ConnectedClients[i].available()) {             // if there's bytes to read from the client,
-        char c = ConnectedClients[i].read();             // read a byte, then
-        // Serial.write(c);                    // print it out the serial monitor
+    while (client.connected()) {            // loop while the client's connected
+      if (client.available()) {             // if there's bytes to read from the client,
+        char c = client.read();             // read a byte, then
+        Serial.write(c);                    // print it out the serial monitor
         if (c == '\n') {                    // if the byte is a newline character
-  
+          
           // if the current line is blank, you got two newline characters in a row.
           // that's the end of the client HTTP request, so send a response:
           if (currentLine.length() == 0) {
-            // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
-            // and a content-type so the client knows what's coming, then a blank line:
-            ConnectedClients[i].println("HTTP/1.1 200 OK");
-            ConnectedClients[i].println("Content-type:text/html");
-            ConnectedClients[i].println();
-  
-            // the content of the HTTP response follows the header:
-            ConnectedClients[i].print("Click <a href=\"/H\">here</a> turn the LED on<br>");
-            ConnectedClients[i].print("Click <a href=\"/L\">here</a> turn the LED off<br>");
-  
-            int randomReading = analogRead(A1);
-            ConnectedClients[i].print("Random reading from analog pin: ");
-            ConnectedClients[i].print(randomReading);
-  
-            // The HTTP response ends with another blank line:
-            ConnectedClients[i].println();
-            // break out of the while loop:
+            ProvidePageToClient(client, "LOGIN PAGE");
             break;
           }
           else {      // if you got a newline, then clear currentLine:
@@ -124,16 +170,19 @@ void APFakerClientLoopManager(){
         }
         else if (c != '\r') {    // if you got anything else but a carriage return character,
           currentLine += c;      // add it to the end of the currentLine
+        }        
+        if (currentLine.endsWith("POST /L")) {
+          ProvidePageToClient(client, "CAN'T LOGIN");
+          break;
         }
-  
-        // Check to see if the client request was "GET /H" or "GET /L":
-        if (currentLine.endsWith("GET /H")) {
-          digitalWrite(led, HIGH);               // GET /H turns the LED on
-        }
-        if (currentLine.endsWith("GET /L")) {
-          digitalWrite(led, LOW);                // GET /L turns the LED off
+        if (currentLine.endsWith("GET /R")) {
+          ProvidePageToClient(client, "CAN'T REGISTER");
+          break;
         }
       }
     }
+    // close the connection:
+    client.stop();
+    Serial.println("client disconnected");
   }
 }

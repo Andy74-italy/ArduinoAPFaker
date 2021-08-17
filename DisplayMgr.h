@@ -9,6 +9,8 @@
 
 #include "APFaker.h"
 
+#define size_of_Array(x)   (sizeof(x) / sizeof(*x))
+
 /**********************************
  * Button available on the device
  * The central button can be used to 
@@ -50,18 +52,18 @@ enum SCREENS {
  * First title of each screen
  */
 String DisplaysTitles[TOTAL_SCREENS] = {
-  " - Chose AP -",
-  " - AP Active -",
-  " - Status -",
-  " - Record -"
+  "-Chose AP-",
+  "-AP Active-",
+  "-Status-",
+  "-Record-"
 };
 
 /*****************************************
  * Available Faker AP listed in the HOME
  */
 APFakerStruct AvailableAP[2] = {
-  { "Maximo", "", 0 },
-  { "Euroma2", "", 0 }
+  { "Maximo", "WiFi Maximo Guest 2", "", 0 },
+  { "Euroma2", "WiFi Euroma2 Guest", "", 0 }
 };
 
 /**********************************
@@ -89,12 +91,6 @@ enum METRICS {
   MTR_TOTAL,
   MTR_MAX_ELEM
 };
-/**********************************
- * In this array will be recorded the 
- * statistics to show in the status 
- * screen (look the totalRecords variable)
- */
-int MetricsData[3];
 
 /**********************************
  * In this array will be recorded the 
@@ -154,22 +150,22 @@ void DrawDisplay(String rowOne, String rowTwo){
  * display with the information relative the specific 
  * screen and the relative array at own assigned
  */
-void UpdateDisplay(SCREENS displayNum, int line){
+void UpdateDisplay(){
   String ElementLine2 = "";
-  String SectionTitle = DisplaysTitles[(int)displayNum];
-  switch(displayNum){
+  String SectionTitle = DisplaysTitles[(int)currentScreen];
+  switch(currentScreen){
     case HOME_SCREEN:
-      ElementLine2 = AvailableAP[line % sizeof(AvailableAP)].ssid;
+      ElementLine2 = AvailableAP[actualLine % size_of_Array(AvailableAP)].shortName;
       break;
     case ACTIVE_SCREEN:
-      ElementLine2 = ActiveActions[line % sizeof(ActiveActions)];
+      ElementLine2 = ActiveActions[actualLine % size_of_Array(ActiveActions)];
       break;
     case STATUS_SCREEN:
-      ElementLine2 = String(MetricsData[line % MTR_MAX_ELEM]) + StatusMetrics[line % MTR_MAX_ELEM];
+      ElementLine2 = String(MetricsData[actualLine % MTR_MAX_ELEM]) + StatusMetrics[actualLine % MTR_MAX_ELEM];
       break;
     case RESULT_SCREEN:
       if (totalRecords > 0)
-        ElementLine2 = ResultList[line % totalRecords];
+        ElementLine2 = ResultList[actualLine % totalRecords];
       else
         ElementLine2 = "NO records!";
       break;
@@ -195,8 +191,44 @@ void setupDisplay()
   display.display();
   delay(3000);
   currentScreen = HOME_SCREEN;
-  UpdateDisplay(currentScreen, actualLine);
+  // UpdateDisplay();
   myTimeStart = millis();
+}
+
+void Activate(){
+  switch(currentScreen){
+    case HOME_SCREEN:
+      DrawDisplay("-WORKING-", "Creating AP!");
+      if (InitializationAP(AvailableAP[actualLine % size_of_Array(AvailableAP)]) != CS_SUCCESS){
+        DrawDisplay("-ERROR-", "Creating AP failed!");
+        Serial.println("Creating AP failed!");
+        delay(5000);
+      }
+      currentScreen = ACTIVE_SCREEN;
+      break;
+    case ACTIVE_SCREEN:
+      switch(actualLine % size_of_Array(ActiveActions)){
+        case 0:   // "Stop AP"
+          currentScreen = HOME_SCREEN;
+          break;
+        case 1:   // "Status"
+          currentScreen = STATUS_SCREEN;
+          break;
+        case 2:   // "Records"
+          currentScreen = RESULT_SCREEN;
+          break;
+        default:
+          break;
+      }
+      break;
+    case STATUS_SCREEN:
+    case RESULT_SCREEN:
+      currentScreen = HOME_SCREEN;
+      break;
+    default:
+      break;
+  }
+  actualLine = 0;
 }
 
 void displayLoop(ACTIONS action) {
@@ -215,7 +247,7 @@ void displayLoop(ACTIONS action) {
   if (scrollActive && myTimeStop - myTimeStart > 100)
   {
     actualPos += adder;
-    UpdateDisplay(currentScreen, actualLine);
+    UpdateDisplay();
     if (!display.getPixel(120, 28))
       endOfLine++;
     else
@@ -235,16 +267,20 @@ void displayLoop(ACTIONS action) {
       actualLine--;
       break;
     case ACT_CONFIRM:
+      Activate();
       actualLine = 0;
       break;
     case ACT_DOWN:
       actualLine++;
       break;
     default:
-      CheckForNewClient();
-      APFakerClientLoopManager();
+      if (currentAPFaker != emptyAPFaker)
+      {
+        CheckForNewDevices();
+        APFakerClientLoopManager();
+      }
       return;
       break;
   }
-  UpdateDisplay(currentScreen, actualLine);
+  UpdateDisplay();
 }
