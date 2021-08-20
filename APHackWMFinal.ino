@@ -37,19 +37,26 @@ ACTIONS Action(){
 }
 
 void setup() {
+  // SetLogLevel(LOG_DEBUG);
+  rtc.begin();
+  
   Serial.begin(9600);
+  Logger::WriteLog(LOG_INFO, "Serial port initialized succesfully!");
   
   setupDisplay();
   switch (setupAPFaker()){
     case CS_SUCCESS:
       DrawDisplay("-OK-", "WiFi init success!");
+      Logger::WriteLog(LOG_INFO, "WiFi initialized succesfully!");
       break;
     case CS_ERROR_WIFI_STATUS:
       DrawDisplay("-ERROR-", "WiFi init failed!");
+      Logger::WriteLog(LOG_ERROR, "WiFi initialization failed!");
       while(true);
       break;
     case CS_WARNING_FIRMWARE_VERSION:
       DrawDisplay("-WARNING-", "Update FW!");
+      Logger::WriteLog(LOG_WARNING, "WiFi initialized succesfully, but need to initialize update the Firmware version!");
       break;
   }
   delay(3000);

