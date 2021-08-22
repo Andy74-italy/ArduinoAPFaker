@@ -1,4 +1,4 @@
-#include <RTCZero.h>
+#include "microSDMgr.h"
 
 enum LOG_TYPE {
   LOG_ERROR = 0,
@@ -29,13 +29,13 @@ class Logger{
       char tm[16];
       sprintf(dt, "%02d/%02d/%02d", rtc.getYear(),rtc.getMonth(),rtc.getDay());
       sprintf(tm, "%02d:%02d:%02d", rtc.getHours(),rtc.getMinutes(),rtc.getSeconds());
-      Serial.print(dt);
-      Serial.print(" ");
-      Serial.print(tm);
-      Serial.print(" - ");
-      Serial.print(titleLog[type]);
-      Serial.println();
-      Serial.println(message);
-      Serial.println();
+      Serial.print(dt);               RecordLog(String(dt), false);
+      Serial.print(" ");              RecordLog(" ", false);
+      Serial.print(tm);               RecordLog(String(tm), false);
+      Serial.print(" - ");            RecordLog(" - ", false);
+      Serial.print(titleLog[type]);   RecordLog(titleLog[type], false);
+      Serial.println();               RecordLog("", true);
+      Serial.println(message);        RecordLog(message, true);
+      Serial.println();               RecordLog("", true);
     }
 };

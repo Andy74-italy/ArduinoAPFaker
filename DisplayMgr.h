@@ -186,13 +186,16 @@ void Activate(){
         DrawDisplay("-ERROR-", "Creating AP failed!");
         Logger::WriteLog(LOG_ERROR, "Creating AP failed!");
         delay(5000);
+        return;
       }
+      StartSDActivity();
       currentScreen = ACTIVE_SCREEN;
       break;
     case ACTIVE_SCREEN:
       switch(actualLine % size_of_Array(ActiveActions)){
         case 0:   // "Stop AP"
           StopAP();
+          StopSDActivity();
           currentScreen = HOME_SCREEN;
           break;
         case 1:   // "Status"
