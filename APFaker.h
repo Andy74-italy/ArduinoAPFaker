@@ -51,9 +51,8 @@ IPAddress GetIPAddress() {
   return WiFi.localIP();
 }
 
-String IpAddressAsString()
+String IpAddressAsString(IPAddress ipAddress)
 {
-  IPAddress ipAddress = GetIPAddress();
   return String(ipAddress[0]) + String(".") +
          String(ipAddress[1]) + String(".") +
          String(ipAddress[2]) + String(".") +
@@ -93,7 +92,7 @@ CODE_RETURN InitializationAP(APFakerStruct apf) {
 
 //  Serial.print("IP to navigate: ");
 //  Serial.println(GetIPAddress());
-  Logger::WriteLog(LOG_INFO, "Initialization DONE. AP faker [" + String(apf.ssid) + "] available at Address IP [" + IpAddressAsString() + "]!");
+  Logger::WriteLog(LOG_INFO, "Initialization DONE. AP faker [" + String(apf.ssid) + "] available at Address IP [" + IpAddressAsString(GetIPAddress()) + "]!");
 
   return CS_SUCCESS;
 }
@@ -126,7 +125,7 @@ void CheckForNewDevices() {
 }
 
 void ProvideLogInPageToClient(WiFiClient client, String page){
-  Logger::WriteLog(LOG_INFO, "Sending page " + page + " started!");
+  Logger::WriteLog(LOG_INFO, "Sending page " + page + " to " + IpAddressAsString(client.remoteIP()) + " started!");
   
   client.println("HTTP/1.1 200 OK");
   client.println("Content-type:text/html");
@@ -147,6 +146,8 @@ void ProvideLogInPageToClient(WiFiClient client, String page){
 }
 
 void ProvideErrorPageToClient(WiFiClient client, String message){
+  Logger::WriteLog(LOG_INFO, "Sending ERROR page started!");
+  
   client.println("HTTP/1.1 200 OK");
   client.println("Content-type:text/html");
   client.println();
@@ -155,6 +156,8 @@ void ProvideErrorPageToClient(WiFiClient client, String message){
   client.print(message);
   client.print("</p></div>");
   client.println();
+
+  Logger::WriteLog(LOG_INFO, "Sending ERROR page completed!");
 }
 
 /*

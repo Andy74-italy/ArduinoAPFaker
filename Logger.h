@@ -11,6 +11,7 @@ enum LOG_TYPE {
 String titleLog[LOG_TOTAL] = {
   "ERROR",
   "INFO",
+  "WARNING",
   "DEBUG"
 };
 
@@ -25,16 +26,10 @@ class Logger{
     static void WriteLog(LOG_TYPE type, String message){
       if (type > LogLevel)
         return;
-      char dt[16];
-      char tm[16];
-      sprintf(dt, "%02d/%02d/%02d", rtc.getYear(),rtc.getMonth(),rtc.getDay());
-      sprintf(tm, "%02d:%02d:%02d", rtc.getHours(),rtc.getMinutes(),rtc.getSeconds());
-      Serial.print(dt);               RecordLog(String(dt), false);
-      Serial.print(" ");              RecordLog(" ", false);
-      Serial.print(tm);               RecordLog(String(tm), false);
-      Serial.print(" - ");            RecordLog(" - ", false);
-      Serial.print(titleLog[type]);   RecordLog(titleLog[type], false);
-      Serial.println();               RecordLog("", true);
+      String dtm = String(rtc.getYear()) + "/" + String(rtc.getMonth()) + "/" + String(rtc.getDay())
+                 + " " + String(rtc.getHours()) + ":" + String(rtc.getMinutes()) + ":" + String(rtc.getSeconds())
+                 + " - " + titleLog[type];
+      Serial.println(dtm);            RecordLog(dtm, true);
       Serial.println(message);        RecordLog(message, true);
       Serial.println();               RecordLog("", true);
     }

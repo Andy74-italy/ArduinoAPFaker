@@ -20,8 +20,8 @@ void StartSDActivity(){
   if (!SDAvailable)
     return;
   RTCZero rtc;
-  char partialFileName[15];
-  sprintf(partialFileName, "%02d%02d%02d", rtc.getHours(),rtc.getMinutes(),rtc.getSeconds());
+  String partialFileName;
+  partialFileName = String(rtc.getHours()) + String(rtc.getMinutes()) + String(rtc.getSeconds());
   log_file_name = String(partialFileName) + ".log";
   records_fie_name = String(partialFileName) + ".txt";
   logfile = SD.open(log_file_name, FILE_WRITE);
