@@ -8,13 +8,21 @@ bool buttonPressed = false;
  * pressed TO BE IMPLEMENT */
 ACTIONS Action(){
   float temp = analogRead(buttonPin);
+  Logger::WriteLog(LOG_DEBUG, "Checking for button pressure (temp): " + String(temp));
 
+  // Values using USB
   // 300 - 320 = UP button
   // 620 - 640 = MIDDLE button
   // 1020 - 1025 = DOWN button
-  bool b1 = (temp > 300 && temp < 320);
-  bool b2 = (temp > 620 && temp < 640);
-  bool b3 = (temp > 1020 && temp < 1025);
+  //
+  // Values using Battery
+  // 160 - 190 = UP button
+  // 340 - 370 = MIDDLE button
+  // 870 - 900 = DOWN button
+  
+  bool b1 = (temp > 160 && temp < 190);
+  bool b2 = (temp > 340 && temp < 370);
+  bool b3 = (temp > 870 && temp < 900);
 
   // check if all the button are released
   // in that case unset the pressed button flag 
@@ -57,7 +65,7 @@ void setup() {
       break;
     case CS_WARNING_FIRMWARE_VERSION:
       DrawDisplay("-WARNING-", "Update FW!");
-      Logger::WriteLog(LOG_WARNING, "WiFi initialized succesfully, but need to initialize update the Firmware version!");
+      Logger::WriteLog(LOG_WARNING, "WiFi initialized succesfully, but need to update the Firmware version!");
       break;
   }
   delay(3000);
