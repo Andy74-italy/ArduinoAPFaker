@@ -3,30 +3,45 @@
 
 #define SD_PIN 6
 
-String log_file_name = "";
-String records_fie_name = "";
-
+String log_file_name = F("");
+String records_file_name = F("");
 File logfile, records;
 
 bool SDAvailable = false, filesOpen = false;
 
 void SDSetup() {
-  if (!SD.begin(SD_PIN))
+  Serial.println(F("Try to configure the SD!"));
+  if (!SD.begin(SD_PIN)){
+    Serial.println(F("Something went wrong!"));
     return;
+  }
   SDAvailable = true;
+  Serial.println(F("SD Setup completed!"));
 }
 
 void StartSDActivity(){
-  if (!SDAvailable)
+  Serial.println(F("Start SD ACtivity"));
+  if (!SDAvailable){
+    Serial.println(F("ERROR: SD seems to be not available!!!"));
     return;
+  }
   RTCZero rtc;
   String partialFileName;
   partialFileName = String(rtc.getHours()) + String(rtc.getMinutes()) + String(rtc.getSeconds());
   log_file_name = String(partialFileName) + ".log";
-  records_fie_name = String(partialFileName) + ".txt";
-  logfile = SD.open(log_file_name, FILE_WRITE);
-  records = SD.open(records_fie_name, FILE_WRITE);
+  records_file_name = String(partialFileName) + ".txt";
+  logfile = SD.open("logs/" + log_file_name, FILE_WRITE);
+  if (!logfile){
+    Serial.println(F("ERROR: Cannot open log file"));
+    return;
+  }
+  records = SD.open("logs/" + records_file_name, FILE_WRITE);
+  if (!records){
+    Serial.println(F("ERROR: Cannot open record file"));
+    return;
+  }
   filesOpen = true;
+  Serial.println(F("SD ACtivity Started"));
 }
 
 void StopSDActivity(){

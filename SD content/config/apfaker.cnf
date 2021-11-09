@@ -1,0 +1,16 @@
+# Configuration file for the AP Faker
+# standard for setting value
+# <SETTING NAME>=<SETTING VALUE>
+
+# SECTION LOGGER
+# possible value for the log-level
+# LOG_ERROR = 0
+# LOG_INFO = 1
+# LOG_WARNING = 2
+# LOG_DEBUG = 3
+LOG-LEVEL=2
+
+# GENERAL SETTINGS
+SCROLL-ACTIVE=false
+
+# END OF CONFIGURATION

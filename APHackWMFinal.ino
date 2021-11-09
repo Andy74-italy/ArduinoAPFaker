@@ -1,28 +1,32 @@
-#include "DisplayMgr.h"
+#include "Configurator.h"
 
-int buttonPin = A1;
+uint8_t buttonPin = A1;
 bool buttonPressed = false;
 
 /******************************************
  * This function will identify the button 
  * pressed TO BE IMPLEMENT */
+float temp;
+bool b1, b2, b3;
 ACTIONS Action(){
-  float temp = analogRead(buttonPin);
+  temp = analogRead(buttonPin);
   Logger::WriteLog(LOG_DEBUG, "Checking for button pressure (temp): " + String(temp));
 
   // Values using USB
   // 300 - 320 = UP button
   // 620 - 640 = MIDDLE button
   // 1020 - 1025 = DOWN button
+  b1 = (temp > 300 && temp < 320);
+  b2 = (temp > 620 && temp < 640);
+  b3 = (temp > 1020 && temp < 1025);
   //
   // Values using Battery
   // 160 - 190 = UP button
   // 340 - 370 = MIDDLE button
   // 870 - 900 = DOWN button
-  
-  bool b1 = (temp > 160 && temp < 190);
-  bool b2 = (temp > 340 && temp < 370);
-  bool b3 = (temp > 870 && temp < 900);
+//  b1 = (temp > 160 && temp < 190);
+//  b2 = (temp > 340 && temp < 370);
+//  b3 = (temp > 870 && temp < 900);
 
   // check if all the button are released
   // in that case unset the pressed button flag 
@@ -44,28 +48,36 @@ ACTIONS Action(){
   return ((b1) ? ACT_UP : ((b2) ? ACT_CONFIRM : ACT_DOWN));
 }
 
+void SetDefaultConfig(){
+  SetLogLevel(LOG_INFO);
+  scrollActive = false;
+}
+
 void setup() {
-  // SetLogLevel(LOG_DEBUG);
   rtc.begin();
 
-  SDSetup();  
   Serial.begin(9600);
-  Logger::WriteLog(LOG_INFO, "Serial port initialized succesfully!");
-  
+  delay(3000);
+  SDSetup();
+  Logger::WriteLog(LOG_INFO, F("Serial port initialized succesfully!"));
+
+  SetDefaultConfig();
+  loadConfig();
+
   setupDisplay();
   switch (setupAPFaker()){
     case CS_SUCCESS:
-      DrawDisplay("-OK-", "WiFi init success!");
-      Logger::WriteLog(LOG_INFO, "WiFi initialized succesfully!");
+      DrawDisplay(F("SUCCESS"), F("WiFi ready"));
+      Logger::WriteLog(LOG_INFO, F("WiFi initialized succesfully!"));
       break;
     case CS_ERROR_WIFI_STATUS:
-      DrawDisplay("-ERROR-", "WiFi init failed!");
-      Logger::WriteLog(LOG_ERROR, "WiFi initialization failed!");
+      DrawDisplay(F("ERROR"), F("WiFi fail"));
+      Logger::WriteLog(LOG_ERROR, F("WiFi initialization failed!"));
       while(true);
       break;
     case CS_WARNING_FIRMWARE_VERSION:
-      DrawDisplay("-WARNING-", "Update FW!");
-      Logger::WriteLog(LOG_WARNING, "WiFi initialized succesfully, but need to update the Firmware version!");
+      DrawDisplay(F("WARNING"), F("Update FW"));
+      Logger::WriteLog(LOG_WARNING, F("WiFi initialized succesfully, but need to update the Firmware version!"));
       break;
   }
   delay(3000);

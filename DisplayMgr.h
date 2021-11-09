@@ -52,10 +52,10 @@ enum SCREENS {
  * First title of each screen
  */
 String DisplaysTitles[TOTAL_SCREENS] = {
-  "-Chose AP-",
-  "-AP Active-",
-  "-Status-",
-  "-Record-"
+  F("Chose AP"),
+  F("AP Active"),
+  F("Status"),
+  F("Record")
 };
 
 /*****************************************
@@ -71,9 +71,9 @@ APFakerStruct AvailableAP[2] = {
  * with the AP active
  */
 String ActiveActions[3] = {
-  "Stop AP",
-  "Status",
-  "Records"
+  F("Stop AP"),
+  F("Status"),
+  F("Records")
 };
 
 /**********************************
@@ -81,9 +81,9 @@ String ActiveActions[3] = {
  * the Status screen
  */
 String StatusMetrics[3] = {
-  " victim/s",
-  " client/s",
-  " total"
+  F(" victim/s"),
+  F(" client/s"),
+  F(" total")
 };
 
 /**********************************
@@ -134,7 +134,7 @@ void DrawDisplay(String rowOne, String rowTwo){
  * screen and the relative array at own assigned
  */
 void UpdateDisplay(){
-  String ElementLine2 = "";
+  String ElementLine2 = F("");
   String SectionTitle = DisplaysTitles[(int)currentScreen];
   switch(currentScreen){
     case HOME_SCREEN:
@@ -150,14 +150,14 @@ void UpdateDisplay(){
       if (MetricsData[MTR_VICTIMS] > 0)
         ElementLine2 = ResultList[actualLine % MetricsData[MTR_VICTIMS]];
       else
-        ElementLine2 = "NO records!";
+        ElementLine2 = F("NO records!");
       break;
     default:
       /************************************************
        * An unexpected SCREEN provide an unknow ERROR
        * that the device is unable to resolve
        */
-      ElementLine2 = "ERROR!!!";
+      ElementLine2 = F("ERROR!!!");
       break;
   }
 
@@ -174,17 +174,16 @@ void setupDisplay()
   display.display();
   delay(3000);
   currentScreen = HOME_SCREEN;
-  // UpdateDisplay();
   myTimeStart = millis();
 }
 
 void Activate(){
   switch(currentScreen){
     case HOME_SCREEN:
-      DrawDisplay("-WORKING-", "Creating AP!");
+      DrawDisplay(F("WORKING..."), F("Making AP"));
       if (InitializationAP(AvailableAP[actualLine % size_of_Array(AvailableAP)]) != CS_SUCCESS){
-        DrawDisplay("-ERROR-", "Creating AP failed!");
-        Logger::WriteLog(LOG_ERROR, "Creating AP failed!");
+        DrawDisplay(F("ERROR"), F("AP Failed"));
+        Logger::WriteLog(LOG_ERROR, F("Creating AP failed!"));
         delay(5000);
         return;
       }
@@ -199,11 +198,11 @@ void Activate(){
           currentScreen = HOME_SCREEN;
           break;
         case 1:   // "Status"
-          Logger::WriteLog(LOG_INFO, "Switching on status!");
+          Logger::WriteLog(LOG_INFO, F("Switching on status!"));
           currentScreen = STATUS_SCREEN;
           break;
         case 2:   // "Records"
-          Logger::WriteLog(LOG_INFO, "Switching on records!");
+          Logger::WriteLog(LOG_INFO, F("Switching on records!"));
           currentScreen = RESULT_SCREEN;
           break;
         default:
@@ -252,16 +251,16 @@ void displayLoop(ACTIONS action) {
    * Do action based on the button pressed */
   switch (action) {
     case ACT_UP:
-      Logger::WriteLog(LOG_DEBUG, "UP button pressed!");
+      Logger::WriteLog(LOG_DEBUG, F("UP button pressed!"));
       actualLine--;
       break;
     case ACT_CONFIRM:
-      Logger::WriteLog(LOG_DEBUG, "CONFIRM button pressed!");
+      Logger::WriteLog(LOG_DEBUG, F("CONFIRM button pressed!"));
       Activate();
       actualLine = 0;
       break;
     case ACT_DOWN:
-      Logger::WriteLog(LOG_DEBUG, "DOWN button pressed!");
+      Logger::WriteLog(LOG_DEBUG, F("DOWN button pressed!"));
       actualLine++;
       break;
     default:

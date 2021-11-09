@@ -9,10 +9,10 @@ enum LOG_TYPE {
 } LogLevel = LOG_WARNING;
 
 String titleLog[LOG_TOTAL] = {
-  "ERROR",
-  "INFO",
-  "WARNING",
-  "DEBUG"
+  F("ERROR"),
+  F("INFO"),
+  F("WARNING"),
+  F("DEBUG")
 };
 
 RTCZero rtc;
@@ -31,6 +31,6 @@ class Logger{
                  + " - " + titleLog[type];
       Serial.println(dtm);            RecordLog(dtm, true);
       Serial.println(message);        RecordLog(message, true);
-      Serial.println();               RecordLog("", true);
+      Serial.println();               RecordLog(F(""), true);
     }
 };
