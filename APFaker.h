@@ -12,7 +12,8 @@ class APFakerStruct
     bool operator!=(APFakerStruct comp){
       return strcmp(ssid, comp.ssid) != 0 || strcmp(pass, comp.pass) != 0 || (keyIndex != comp.keyIndex);
     }
-} currentAPFaker, emptyAPFaker = { "", "", "", 0 };
+    APFakerStruct* next;
+} currentAPFaker, emptyAPFaker = { "", "", "", 0, NULL };
 
 enum CODE_RETURN {
   CS_SUCCESS = 0,
@@ -30,6 +31,15 @@ enum METRICS {
   MTR_TOTAL,
   MTR_MAX_ELEM
 };
+
+/*****************************************
+ * Available Faker AP listed in the HOME
+ */
+uint8_t numberOfAP = 0;
+APFakerStruct *AvailableAP; /*[2] = {
+  { "Maximo", "WiFi Maximo Guest 2", "", 0 },
+  { "Euroma2", "WiFi Euroma2 Guest", "", 0 }
+}; */
 
 /**********************************
  * In this array will be recorded the 
@@ -49,6 +59,15 @@ WiFiServer server(80);
 
 IPAddress GetIPAddress() {
   return WiFi.localIP();
+}
+
+APFakerStruct* GetAPFaker(uint8_t numel){
+  APFakerStruct* el = AvailableAP;
+  for (size_t i = 0; i < numel; i++)
+  {
+    el = el->next;
+  }
+  return el;
 }
 
 String IpAddressAsString(IPAddress ipAddress)

@@ -58,14 +58,6 @@ String DisplaysTitles[TOTAL_SCREENS] = {
   F("Record")
 };
 
-/*****************************************
- * Available Faker AP listed in the HOME
- */
-APFakerStruct AvailableAP[2] = {
-  { "Maximo", "WiFi Maximo Guest 2", "", 0 },
-  { "Euroma2", "WiFi Euroma2 Guest", "", 0 }
-};
-
 /**********************************
  * Actions available for the screen
  * with the AP active
@@ -138,7 +130,8 @@ void UpdateDisplay(){
   String SectionTitle = DisplaysTitles[(int)currentScreen];
   switch(currentScreen){
     case HOME_SCREEN:
-      ElementLine2 = AvailableAP[actualLine % size_of_Array(AvailableAP)].shortName;
+      // ElementLine2 = AvailableAP[actualLine % size_of_Array(AvailableAP)].shortName;
+      ElementLine2 = GetAPFaker(actualLine % numberOfAP)->shortName;
       break;
     case ACTIVE_SCREEN:
       ElementLine2 = ActiveActions[actualLine % size_of_Array(ActiveActions)];
@@ -181,7 +174,8 @@ void Activate(){
   switch(currentScreen){
     case HOME_SCREEN:
       DrawDisplay(F("WORKING..."), F("Making AP"));
-      if (InitializationAP(AvailableAP[actualLine % size_of_Array(AvailableAP)]) != CS_SUCCESS){
+      // if (InitializationAP(AvailableAP[actualLine % size_of_Array(AvailableAP)]) != CS_SUCCESS){
+      if (InitializationAP(*GetAPFaker(actualLine % numberOfAP)) != CS_SUCCESS){
         DrawDisplay(F("ERROR"), F("AP Failed"));
         Logger::WriteLog(LOG_ERROR, F("Creating AP failed!"));
         delay(5000);

@@ -13,4 +13,9 @@ LOG-LEVEL=2
 # GENERAL SETTINGS
 SCROLL-ACTIVE=false
 
+# AVAILABLE ACCESS POINT
+# define same variable for all record (APFAKER)
+APFAKER=Maximo,WiFi Maximo Guest 2,,0
+APFAKER=Euroma2,WiFi Euroma2 Guest,,0
+
 # END OF CONFIGURATION
