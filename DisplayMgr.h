@@ -181,7 +181,7 @@ void Activate(){
         delay(5000);
         return;
       }
-      StartSDActivity();
+      StartSDActivity(currentAPFaker.shortName);
       currentScreen = ACTIVE_SCREEN;
       break;
     case ACTIVE_SCREEN:

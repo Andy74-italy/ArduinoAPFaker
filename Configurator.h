@@ -32,7 +32,7 @@ void setConfig(String setting, String value){
     value.replace(F("LOG_"), F(""));
     if (indexOfLogLevel(value) != -1)
       SetLogLevel((LOG_TYPE)value.toInt());
-      SetLogLevel(LOG_DEBUG);
+      // SetLogLevel(LOG_DEBUG);
   } else if (setting == F("SCROLL-ACTIVE")){
     value.toLowerCase();
     scrollActive = (value == F("true"));
