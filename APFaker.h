@@ -1,5 +1,6 @@
 #include <WiFiNINA.h>
 
+#include "dnsSettings.h"
 #include "Logger.h"
 
 class APFakerStruct
@@ -93,6 +94,8 @@ CODE_RETURN setupAPFaker() {
     return CS_WARNING_FIRMWARE_VERSION;
   }
 
+  WiFi.config(apip,apip,gwip,IPAddress(255,255,255,0));
+
   return CS_SUCCESS;
 }
 
@@ -104,6 +107,8 @@ CODE_RETURN InitializationAP(APFakerStruct apf) {
     return CS_ERROR_AP_INITIALIZATION;
   }
   delay(10000);
+
+  Udp.begin(udpPort);
   server.begin();
 
   currentAPFaker = apf;
@@ -252,4 +257,5 @@ void APFakerClientLoopManager(){
     client.stop();
     Logger::WriteLog(LOG_INFO, F("CLIENT disconnected!"));
   }
+  else udpScan();
 }

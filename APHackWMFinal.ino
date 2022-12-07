@@ -80,8 +80,15 @@ void setup() {
   }
   delay(3000);
   UpdateDisplay();
+
+  if (!SDAvailable){
+    DrawDisplay(F("ERROR"), F("SD ERROR!"));
+  }
 }
 
 void loop() {
+  if (!SDAvailable){
+    return;
+  }
   displayLoop(Action());
 }
